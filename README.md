@@ -5,11 +5,11 @@
 
 ## Descrição do Projeto
 
-Sistema de gestão desenvolvido em .NET 9.0 para administração de usuários, certificados, cursos, empresas e vagas de emprego. A solução utiliza Azure SQL Database (PaaS) como banco de dados e Azure App Service para hospedagem, seguindo uma arquitetura PaaS pura.
+Sistema de gestão desenvolvido em .NET 8.0 para administração de usuários, certificados, cursos, empresas e vagas de emprego. A solução utiliza Azure SQL Database (PaaS) como banco de dados e Azure App Service para hospedagem, seguindo uma arquitetura PaaS pura.
 
 ## Arquitetura
 
-- **Backend:** ASP.NET Core Web API (.NET 9.0)
+- **Backend:** ASP.NET Core Web API (.NET 8.0)
 - **Banco de Dados:** Azure SQL Database (PaaS)
 - **Hospedagem:** Azure App Service (Web App PaaS)
 - **ORM:** Entity Framework Core
@@ -94,7 +94,7 @@ DELETE /api/Usuarios/1
 POST /api/Cursos
 {
   "nomeCurso": "Desenvolvimento .NET Avançado",
-  "descricao": "Curso completo de .NET 9.0",
+  "descricao": "Curso completo de .NET 8.0",
   "qtHoras": 80
 }
 ```
@@ -111,7 +111,7 @@ GET /api/Cursos/buscar?nome=.NET
 PUT /api/Cursos/1
 {
   "idCurso": 1,
-  "nomeCurso": "Desenvolvimento .NET 9.0 Avançado",
+  "nomeCurso": "Desenvolvimento .NET 8.0 Avançado",
   "descricao": "Curso completo atualizado",
   "qtHoras": 100
 }

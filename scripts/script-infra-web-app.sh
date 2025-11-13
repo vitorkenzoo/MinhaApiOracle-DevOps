@@ -34,7 +34,7 @@ az webapp create \
     --name $WEB_APP_NAME \
     --resource-group $RESOURCE_GROUP_NAME \
     --plan $APP_SERVICE_PLAN_NAME \
-    --runtime "DOTNET|9.0"
+    --runtime "DOTNET|8.0"
 
 if [ $? -ne 0 ]; then
     echo "Erro ao criar Web App"
