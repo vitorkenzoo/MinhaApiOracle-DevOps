@@ -1,11 +1,11 @@
-# Azure Pipeline para Build (CI)
+# Azure Pipeline para Build (CI) e Deploy (CD)
 # RM557245 - Vitor Kenzo Mizumoto
 # RM556760 - Adriano Barutti Pessuto
 
 trigger:
   branches:
     include:
-    - main # Gatilho: rodar apenas quando houver merge na main
+    - main
   paths:
     include:
     - '**/*.cs'
@@ -13,15 +13,23 @@ trigger:
     - '**/*.sln'
     - 'azure-pipeline.yml'
 
-# A política de branch que você configurou (Fase 1) garante 
-# que isso só rodará APÓS um PR, cumprindo o Req. 4.4
-pr: none 
+pr: none
 
 variables:
+  # Variáveis globais
   buildConfiguration: 'Release'
   vmImageName: 'windows-latest'
-  dotnetSdkVersion: '9.0.x' # Verifique a versão do seu projeto
+  dotnetSdkVersion: '9.0.x'
 
+  # Variáveis para o Deploy
+  # O NOME DA SUA CONEXÃO DE SERVIÇO. Verifique em Project Settings > Service connections
+  azureSubscription: 'ConexaoAzureStudents' 
+  webAppName: 'web-minha-api-oracle' # O nome do seu Web App no Azure
+  resourceGroup: 'rg-minha-api-oracle' # O Resource Group do seu Web App
+
+# =====================================================================
+# STAGE 1: BUILD (35 PONTOS)
+# =====================================================================
 stages:
 - stage: Build
   displayName: 'Build e Testes'
@@ -55,7 +63,7 @@ stages:
       displayName: 'Executar testes (da pasta /Tests)'
       inputs:
         command: 'test'
-        projects: '**/MinhaApiOracle.Tests.csproj' # Caminho exato para seu projeto de teste
+        projects: '**/MinhaApiOracle.Tests.csproj'
         arguments: '--configuration $(buildConfiguration) --no-build --logger "trx;LogFileName=test-results.trx"'
       
     - task: PublishTestResults@2
@@ -64,20 +72,19 @@ stages:
         testResultsFormat: 'VSTest'
         testResultsFiles: '**/*.trx'
         testRunTitle: 'Testes XUnit'
-      condition: succeededOrFailed() # Publica resultados mesmo se os testes falharem
+      condition: succeededOrFailed()
 
-    # Esta é a etapa de Publicação da API (NÃO dos testes)
     - task: DotNetCoreCLI@2
       displayName: 'Publish da aplicação (API)'
       inputs:
         command: 'publish'
-        publishWebProjects: false # Falso, para podermos especificar o projeto
-        projects: '**/MinhaApiOracle.csproj' # Caminho EXATO para seu projeto da API
+        publishWebProjects: false
+        projects: '**/MinhaApiOracle.csproj'
         arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory) --no-build'
-        zipAfterPublish: true # Gera o .zip que o Release vai usar
-      condition: succeeded() # Só publica se testes e build passarem
+        zipAfterPublish: true
+      condition: succeeded()
 
-    # Esta tarefa publica o .zip como um "Artefato" chamado "drop"
+    # Publica o .zip como um artefato para o PRÓXIMO STAGE
     - task: PublishBuildArtifacts@1
       displayName: 'Publicar artefato (drop)'
       inputs:
@@ -85,3 +92,61 @@ stages:
         ArtifactName: 'drop' # Nome do artefato
         publishLocation: 'Container'
       condition: succeeded()
+
+# =====================================================================
+# STAGE 2: DEPLOY (35 PONTOS)
+# =====================================================================
+- stage: Deploy
+  displayName: 'Deploy para Azure Web App'
+  dependsOn: Build # Só roda se o Build for um sucesso
+  condition: succeeded()
+  
+  jobs:
+  - deployment: DeployJob
+    displayName: 'Deploy no Azure Web App'
+    pool:
+      vmImage: $(vmImageName)
+    
+    # "environment: 'Production'" cria um "ambiente" no Azure DevOps
+    # Isso permite aprovações manuais e rastreamento.
+    environment: 'Production' 
+    
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # 1. Baixa o artefato (.zip) criado no stage de Build
+          - task: DownloadBuildArtifacts@1
+            displayName: 'Download artefato (drop)'
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'drop'
+              downloadPath: '$(Pipeline.Workspace)'
+
+          # 2. Faz o Deploy do .zip no Web App
+          - task: AzureWebApp@1
+            displayName: 'Deploy Azure Web App'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              appType: 'webAppWindows'
+              appName: $(webAppName)
+              # O caminho para o .zip baixado na etapa anterior
+              package: '$(Pipeline.Workspace)/drop/**/*.zip' 
+              deploymentMethod: 'auto'
+              
+              # Injeta as variáveis de ambiente no seu App Service
+              # Nota: $(SQL_CONNECTION_STRING) é uma variável SECRETA
+              appSettings: |
+                [
+                  {
+                    "name": "ConnectionStrings:SqlAzureConnection",
+                    "value": "$(SQL_CONNECTION_STRING)",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "ASPNETCORE_ENVIRONMENT",
+                    "value": "Production",
+                    "slotSetting": false
+                  }
+                ]
