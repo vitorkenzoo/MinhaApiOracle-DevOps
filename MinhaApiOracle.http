@@ -1,0 +1,6 @@
+@MinhaApiOracle_HostAddress = http://localhost:5221
+
+GET {{MinhaApiOracle_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

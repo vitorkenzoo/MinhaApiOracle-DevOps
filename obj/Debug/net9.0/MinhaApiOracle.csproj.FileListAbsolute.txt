@@ -1,0 +1,8 @@
+C:\Users\VITOR\cs\MinhaApiOracle-DevOps\obj\Debug\net9.0\MinhaApiOracle.csproj.AssemblyReference.cache
+C:\Users\VITOR\cs\MinhaApiOracle-DevOps\obj\Debug\net9.0\rpswa.dswa.cache.json
+C:\Users\VITOR\cs\MinhaApiOracle-DevOps\obj\Debug\net9.0\MinhaApiOracle.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\VITOR\cs\MinhaApiOracle-DevOps\obj\Debug\net9.0\MinhaApiOracle.AssemblyInfoInputs.cache
+C:\Users\VITOR\cs\MinhaApiOracle-DevOps\obj\Debug\net9.0\MinhaApiOracle.AssemblyInfo.cs
+C:\Users\VITOR\cs\MinhaApiOracle-DevOps\obj\Debug\net9.0\MinhaApiOracle.csproj.CoreCompileInputs.cache
+C:\Users\VITOR\cs\MinhaApiOracle-DevOps\obj\Debug\net9.0\MinhaApiOracle.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\VITOR\cs\MinhaApiOracle-DevOps\obj\Debug\net9.0\MinhaApiOracle.MvcApplicationPartsAssemblyInfo.cache
