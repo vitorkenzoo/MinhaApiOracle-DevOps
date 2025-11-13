@@ -33,6 +33,19 @@ Sistema de gestão desenvolvido em .NET 9.0 para administração de usuários, c
 - **Azure DevOps:** [Link da Organização]
 - **Vídeo YouTube:** [Link do Vídeo]
 
+## Configuração de Variáveis de Ambiente
+
+⚠️ **IMPORTANTE:** Dados sensíveis (senhas, connection strings) devem ser configurados como variáveis de ambiente no Azure DevOps ou Azure Key Vault, NUNCA no código fonte.
+
+### Configuração no Azure DevOps:
+
+1. **Pipelines > Library > Variable Groups**
+   - Crie um Variable Group chamado `Production-Variables`
+   - Adicione: `SQL_CONNECTION_STRING` (marcar como secreto)
+
+2. **Azure Web App > Configuration > Application Settings**
+   - Configure `ConnectionStrings:SqlAzureConnection` com a connection string do Azure SQL
+
 ## Exemplos de CRUD
 
 ### T_USUARIOS
@@ -277,16 +290,13 @@ O arquivo `azure-pipeline.yml` na raiz do projeto configura:
 
 - **Build:** Restore, Build, Test (XUnit), Publish Artifacts
 - **Deploy:** Deploy automático para Azure Web App após Build bem-sucedido
+- **Variáveis de Ambiente:** Connection string configurada via variáveis do Azure DevOps
 
 ## Como Executar Localmente
 
-1. Configure a connection string no `appsettings.json`:
-```json
-{
-  "ConnectionStrings": {
-    "SqlAzureConnection": "Server=...;Database=...;User Id=...;Password=...;"
-  }
-}
+1. Configure a connection string no `appsettings.Development.json` ou via variável de ambiente:
+```bash
+$env:ConnectionStrings__SqlAzureConnection="Server=...;Database=...;User Id=...;Password=...;"
 ```
 
 2. Execute as migrations:

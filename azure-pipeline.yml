@@ -21,6 +21,9 @@ variables:
   resourceGroup: 'rg-minha-api-oracle'
   buildConfiguration: 'Release'
   vmImageName: 'windows-latest'
+  # Variáveis de ambiente - NUNCA colocar senhas aqui diretamente!
+  # Configure no Azure DevOps > Pipelines > Library > Variable Groups
+  # ou use Azure Key Vault para dados sensíveis
 
 stages:
 - stage: Build
@@ -106,4 +109,17 @@ stages:
               appName: $(webAppName)
               package: '$(Pipeline.Workspace)/drop/**/*.zip'
               deploymentMethod: 'auto'
+              appSettings: |
+                [
+                  {
+                    "name": "ConnectionStrings:SqlAzureConnection",
+                    "value": "$(SQL_CONNECTION_STRING)",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "ASPNETCORE_ENVIRONMENT",
+                    "value": "Production",
+                    "slotSetting": false
+                  }
+                ]
 
