@@ -33,11 +33,22 @@ echo "Criando Web App: $WEB_APP_NAME"
 az webapp create \
     --name $WEB_APP_NAME \
     --resource-group $RESOURCE_GROUP_NAME \
-    --plan $APP_SERVICE_PLAN_NAME \
-    --runtime "DOTNETCORE:9.0"
+    --plan $APP_SERVICE_PLAN_NAME
 
 if [ $? -ne 0 ]; then
     echo "Erro ao criar Web App"
+    exit 1
+fi
+
+echo "Configurando runtime DOTNETCORE:9.0..."
+
+az webapp config set \
+    --name $WEB_APP_NAME \
+    --resource-group $RESOURCE_GROUP_NAME \
+    --linux-fx-version "DOTNETCORE|9.0"
+
+if [ $? -ne 0 ]; then
+    echo "Erro ao configurar runtime"
     exit 1
 fi
 
