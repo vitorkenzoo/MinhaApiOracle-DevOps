@@ -19,7 +19,7 @@ variables:
   # Variáveis globais
   buildConfiguration: 'Release'
   vmImageName: 'windows-latest'
-  dotnetSdkVersion: '8.0.x'
+  dotnetSdkVersion: '9.0.x'
 
   # Variáveis para o Deploy
   # O NOME DA SUA CONEXÃO DE SERVIÇO. Verifique em Project Settings > Service connections
