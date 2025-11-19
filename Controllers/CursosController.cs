@@ -54,9 +54,29 @@ namespace MinhaApiOracle.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Curso curso)
         {
-            _context.Cursos.Add(curso);
+            // Validação básica
+            if (string.IsNullOrWhiteSpace(curso.NomeCurso))
+                return BadRequest("O campo 'nomeCurso' é obrigatório.");
+
+            // Cria um novo curso apenas com os dados básicos, ignorando relacionamentos
+            var novoCurso = new Curso
+            {
+                NomeCurso = curso.NomeCurso,
+                Descricao = curso.Descricao,
+                QtHoras = curso.QtHoras,
+                // IdCurso será gerado automaticamente pelo banco (auto-incremento)
+                // Certificados será null (será populado quando necessário)
+            };
+
+            _context.Cursos.Add(novoCurso);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = curso.IdCurso }, curso);
+            
+            // Carrega o curso criado com os relacionamentos para retornar
+            var cursoCriado = await _context.Cursos
+                .Include(c => c.Certificados)
+                .FirstOrDefaultAsync(c => c.IdCurso == novoCurso.IdCurso);
+            
+            return CreatedAtAction(nameof(GetById), new { id = novoCurso.IdCurso }, cursoCriado);
         }
 
         [HttpPut("{id}")]

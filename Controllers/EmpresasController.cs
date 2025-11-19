@@ -54,9 +54,32 @@ namespace MinhaApiOracle.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Empresa empresa)
         {
-            _context.Empresas.Add(empresa);
+            // Validação básica
+            if (string.IsNullOrWhiteSpace(empresa.RazaoSocial))
+                return BadRequest("O campo 'razaoSocial' é obrigatório.");
+            
+            if (string.IsNullOrWhiteSpace(empresa.Cnpj))
+                return BadRequest("O campo 'cnpj' é obrigatório.");
+
+            // Cria uma nova empresa apenas com os dados básicos, ignorando relacionamentos
+            var novaEmpresa = new Empresa
+            {
+                RazaoSocial = empresa.RazaoSocial,
+                Cnpj = empresa.Cnpj,
+                EmailEmpresa = empresa.EmailEmpresa,
+                // IdEmpresa será gerado automaticamente pelo banco (auto-incremento)
+                // Vagas será null (será populado quando necessário)
+            };
+
+            _context.Empresas.Add(novaEmpresa);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = empresa.IdEmpresa }, empresa);
+            
+            // Carrega a empresa criada com os relacionamentos para retornar
+            var empresaCriada = await _context.Empresas
+                .Include(e => e.Vagas)
+                .FirstOrDefaultAsync(e => e.IdEmpresa == novaEmpresa.IdEmpresa);
+            
+            return CreatedAtAction(nameof(GetById), new { id = novaEmpresa.IdEmpresa }, empresaCriada);
         }
 
         [HttpPut("{id}")]

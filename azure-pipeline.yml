@@ -134,19 +134,17 @@ stages:
               # O caminho para o .zip baixado na etapa anterior
               package: '$(Pipeline.Workspace)/drop/**/*.zip' 
               deploymentMethod: 'auto'
-              
-              # Injeta as variáveis de ambiente no seu App Service
-              # Nota: $(SQL_CONNECTION_STRING) é uma variável SECRETA
-              appSettings: |
-                [
-                  {
-                    "name": "ConnectionStrings:SqlAzureConnection",
-                    "value": "$(SQL_CONNECTION_STRING)",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "ASPNETCORE_ENVIRONMENT",
-                    "value": "Production",
-                    "slotSetting": false
-                  }
-                ]
+
+          # 3. Configura as Application Settings do App Service
+          # Nota: $(SQL_CONNECTION_STRING) é uma variável SECRETA
+          # IMPORTANTE: Use __ (dois underscores) em vez de : (dois pontos)
+          # O ASP.NET Core converte automaticamente ConnectionStrings__SqlAzureConnection
+          # para ConnectionStrings:SqlAzureConnection na configuração
+          - task: AzureCLI@2
+            displayName: 'Configurar Application Settings'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az webapp config appsettings set --name $(webAppName) --resource-group $(resourceGroup) --settings ConnectionStrings__SqlAzureConnection="$(SQL_CONNECTION_STRING)" ASPNETCORE_ENVIRONMENT="Production"

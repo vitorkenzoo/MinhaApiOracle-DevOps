@@ -66,12 +66,38 @@ namespace MinhaApiOracle.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Vaga vaga)
         {
-            if (vaga.DtPublicacao == null)
-                vaga.DtPublicacao = DateTime.Now;
+            // Validação básica
+            if (string.IsNullOrWhiteSpace(vaga.NomeVaga))
+                return BadRequest("O campo 'nomeVaga' é obrigatório.");
+            
+            if (vaga.IdEmpresa <= 0)
+                return BadRequest("O campo 'idEmpresa' é obrigatório e deve ser maior que zero.");
 
-            _context.Vagas.Add(vaga);
+            // Verifica se a empresa existe
+            var empresaExiste = await _context.Empresas.AnyAsync(e => e.IdEmpresa == vaga.IdEmpresa);
+            if (!empresaExiste)
+                return BadRequest($"A empresa com ID {vaga.IdEmpresa} não existe.");
+
+            // Cria uma nova vaga apenas com os dados básicos, ignorando relacionamentos
+            var novaVaga = new Vaga
+            {
+                NomeVaga = vaga.NomeVaga,
+                DescricaoVaga = vaga.DescricaoVaga,
+                Salario = vaga.Salario,
+                DtPublicacao = vaga.DtPublicacao ?? DateTime.Now,
+                IdEmpresa = vaga.IdEmpresa,
+                // IdVaga será gerado automaticamente pelo banco (auto-incremento)
+            };
+
+            _context.Vagas.Add(novaVaga);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = vaga.IdVaga }, vaga);
+            
+            // Carrega a vaga criada com os relacionamentos para retornar
+            var vagaCriada = await _context.Vagas
+                .Include(v => v.Empresa)
+                .FirstOrDefaultAsync(v => v.IdVaga == novaVaga.IdVaga);
+            
+            return CreatedAtAction(nameof(GetById), new { id = novaVaga.IdVaga }, vagaCriada);
         }
 
         [HttpPut("{id}")]

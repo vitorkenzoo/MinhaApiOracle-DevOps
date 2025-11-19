@@ -54,12 +54,40 @@ namespace MinhaApiOracle.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Usuario usuario)
         {
-            if (usuario.Cadastro == default(DateTime))
-                usuario.Cadastro = DateTime.Now;
+            // Validação básica
+            if (string.IsNullOrWhiteSpace(usuario.Nome))
+                return BadRequest("O campo 'nome' é obrigatório.");
+            
+            if (string.IsNullOrWhiteSpace(usuario.EmailUsuario))
+                return BadRequest("O campo 'emailUsuario' é obrigatório.");
+            
+            if (string.IsNullOrWhiteSpace(usuario.Senha))
+                return BadRequest("O campo 'senha' é obrigatório.");
+            
+            if (string.IsNullOrWhiteSpace(usuario.Cpf))
+                return BadRequest("O campo 'cpf' é obrigatório.");
 
-            _context.Usuarios.Add(usuario);
+            // Cria um novo usuário apenas com os dados básicos, ignorando relacionamentos
+            var novoUsuario = new Usuario
+            {
+                Nome = usuario.Nome,
+                EmailUsuario = usuario.EmailUsuario,
+                Senha = usuario.Senha,
+                Cpf = usuario.Cpf,
+                Cadastro = usuario.Cadastro == default(DateTime) ? DateTime.Now : usuario.Cadastro,
+                // IdUsuario será gerado automaticamente pelo banco (auto-incremento)
+                // Certificados será null (será populado quando necessário)
+            };
+
+            _context.Usuarios.Add(novoUsuario);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = usuario.IdUsuario }, usuario);
+            
+            // Carrega o usuário criado com os relacionamentos para retornar
+            var usuarioCriado = await _context.Usuarios
+                .Include(u => u.Certificados)
+                .FirstOrDefaultAsync(u => u.IdUsuario == novoUsuario.IdUsuario);
+            
+            return CreatedAtAction(nameof(GetById), new { id = novoUsuario.IdUsuario }, usuarioCriado);
         }
 
         [HttpPut("{id}")]
