@@ -8,27 +8,30 @@ var builder = WebApplication.CreateBuilder(args);
 // ===================================================================================
 // CONFIGURAÇÃO DO BANCO DE DADOS (.NET 9 e SQL Server)
 // ===================================================================================
+// Lê a connection string - funciona tanto com Connection Strings quanto Application Settings
 var connectionString = builder.Configuration.GetConnectionString("SqlAzureConnection");
+
+// Fallback: tenta ler de diferentes formatos (compatibilidade com diferentes configurações)
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString = builder.Configuration["ConnectionStrings:SqlAzureConnection"] 
+                    ?? builder.Configuration["ConnectionStrings__SqlAzureConnection"]
+                    ?? builder.Configuration["SqlAzureConnection"];
+}
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    // Tenta ler diretamente da configuração como variável de ambiente (fallback)
-    connectionString = builder.Configuration["ConnectionStrings:SqlAzureConnection"] 
-                    ?? builder.Configuration["ConnectionStrings__SqlAzureConnection"];
+    var errorMessage = 
+        "Connection string 'SqlAzureConnection' não foi configurada.\n" +
+        "Configure a connection string no Azure Portal:\n" +
+        "1. App Service > Configuration > Connection strings\n" +
+        "   - Name: SqlAzureConnection\n" +
+        "   - Type: SQLAzure\n" +
+        "2. Ou em Application settings:\n" +
+        "   - Name: ConnectionStrings__SqlAzureConnection\n" +
+        "Veja INSTRUCOES-CONFIGURACAO.md para mais detalhes.";
     
-    if (string.IsNullOrWhiteSpace(connectionString))
-    {
-        var errorMessage = 
-            "Connection string 'SqlAzureConnection' não foi configurada.\n" +
-            "Configure a connection string:\n" +
-            "1. No Azure Portal: App Service > Configuration > Application settings\n" +
-            "   Adicione: ConnectionStrings__SqlAzureConnection\n" +
-            "2. Ou via Azure CLI: az webapp config appsettings set\n" +
-            "3. Ou via Pipeline: configure a variável SQL_CONNECTION_STRING\n" +
-            "Veja INSTRUCOES-CONFIGURACAO.md para mais detalhes.";
-        
-        throw new InvalidOperationException(errorMessage);
-    }
+    throw new InvalidOperationException(errorMessage);
 }
 
 builder.Services.AddDbContext<AppDb>(options =>
