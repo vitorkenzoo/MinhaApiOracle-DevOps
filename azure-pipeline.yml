@@ -130,8 +130,12 @@ stages:
               deploymentMethod: 'auto'
 
           # 3. Configura Connection String e Application Settings do App Service
-          # Nota: $(SQL_CONNECTION_STRING) é uma variável SECRETA configurada no Azure DevOps
-          # Método 1: Connection Strings (recomendado - como no repositório antigo)
+          # Nota: Variáveis do banco devem ser configuradas no Azure DevOps (Library > Variable Groups)
+          # Variáveis necessárias (marcar como SECRETAS):
+          # - SQL_SERVER_NAME (ex: sql-minha-api-oracle)
+          # - SQL_DATABASE_NAME (ex: bd-minha-api-oracle)
+          # - SQL_ADMIN_USER (ex: sqladmin)
+          # - SQL_ADMIN_PASSWORD (senha do SQL Server - SECRETO)
           - task: AzureCLI@2
             displayName: 'Configurar Connection String'
             inputs:
@@ -139,9 +143,19 @@ stages:
               scriptType: 'ps'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                az webapp config connection-string set --name $(webAppName) --resource-group $(resourceGroup) --connection-string-type SQLAzure --settings SqlAzureConnection="$(SQL_CONNECTION_STRING)"
+                # Monta a connection string a partir das variáveis individuais
+                $connectionString = "Server=tcp:$(SQL_SERVER_NAME).database.windows.net,1433;Initial Catalog=$(SQL_DATABASE_NAME);Persist Security Info=False;User ID=$(SQL_ADMIN_USER);Password=$(SQL_ADMIN_PASSWORD);MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+                
+                # Configura Connection String no Azure Web App
+                az webapp config connection-string set `
+                  --name $(webAppName) `
+                  --resource-group $(resourceGroup) `
+                  --connection-string-type SQLAzure `
+                  --settings SqlAzureConnection="$connectionString"
+                
+                Write-Host "Connection String configurada com sucesso!"
           
-          # Método 2: Application Settings (fallback)
+          # Configura Application Settings
           - task: AzureCLI@2
             displayName: 'Configurar Application Settings'
             inputs:
