@@ -12,16 +12,23 @@ var connectionString = builder.Configuration.GetConnectionString("SqlAzureConnec
 
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    var errorMessage = 
-        "Connection string 'SqlAzureConnection' não foi configurada.\n" +
-        "Configure a connection string:\n" +
-        "1. No Azure Portal: App Service > Configuration > Application settings\n" +
-        "   Adicione: ConnectionStrings__SqlAzureConnection\n" +
-        "2. Ou via Azure CLI: az webapp config appsettings set\n" +
-        "3. Ou via Pipeline: configure a variável SQL_CONNECTION_STRING\n" +
-        "Veja INSTRUCOES-CONFIGURACAO.md para mais detalhes.";
+    // Tenta ler diretamente da configuração como variável de ambiente (fallback)
+    connectionString = builder.Configuration["ConnectionStrings:SqlAzureConnection"] 
+                    ?? builder.Configuration["ConnectionStrings__SqlAzureConnection"];
     
-    throw new InvalidOperationException(errorMessage);
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        var errorMessage = 
+            "Connection string 'SqlAzureConnection' não foi configurada.\n" +
+            "Configure a connection string:\n" +
+            "1. No Azure Portal: App Service > Configuration > Application settings\n" +
+            "   Adicione: ConnectionStrings__SqlAzureConnection\n" +
+            "2. Ou via Azure CLI: az webapp config appsettings set\n" +
+            "3. Ou via Pipeline: configure a variável SQL_CONNECTION_STRING\n" +
+            "Veja INSTRUCOES-CONFIGURACAO.md para mais detalhes.";
+        
+        throw new InvalidOperationException(errorMessage);
+    }
 }
 
 builder.Services.AddDbContext<AppDb>(options =>
