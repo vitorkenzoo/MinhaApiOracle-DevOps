@@ -19,21 +19,35 @@ namespace MinhaApiOracle.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var usuarios = await _context.Usuarios
-                .Include(u => u.Certificados)
-                .ToListAsync();
-            return Ok(usuarios);
+            try
+            {
+                var usuarios = await _context.Usuarios
+                    .Include(u => u.Certificados)
+                    .ToListAsync();
+                return Ok(usuarios);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao buscar usuários", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var usuario = await _context.Usuarios
-                .Include(u => u.Certificados)
-                .FirstOrDefaultAsync(u => u.IdUsuario == id);
-            
-            if (usuario == null) return NotFound();
-            return Ok(usuario);
+            try
+            {
+                var usuario = await _context.Usuarios
+                    .Include(u => u.Certificados)
+                    .FirstOrDefaultAsync(u => u.IdUsuario == id);
+                
+                if (usuario == null) return NotFound();
+                return Ok(usuario);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao buscar usuário", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpGet("buscar")]
@@ -54,40 +68,47 @@ namespace MinhaApiOracle.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Usuario usuario)
         {
-            // Validação básica
-            if (string.IsNullOrWhiteSpace(usuario.Nome))
-                return BadRequest("O campo 'nome' é obrigatório.");
-            
-            if (string.IsNullOrWhiteSpace(usuario.EmailUsuario))
-                return BadRequest("O campo 'emailUsuario' é obrigatório.");
-            
-            if (string.IsNullOrWhiteSpace(usuario.Senha))
-                return BadRequest("O campo 'senha' é obrigatório.");
-            
-            if (string.IsNullOrWhiteSpace(usuario.Cpf))
-                return BadRequest("O campo 'cpf' é obrigatório.");
-
-            // Cria um novo usuário apenas com os dados básicos, ignorando relacionamentos
-            var novoUsuario = new Usuario
+            try
             {
-                Nome = usuario.Nome,
-                EmailUsuario = usuario.EmailUsuario,
-                Senha = usuario.Senha,
-                Cpf = usuario.Cpf,
-                Cadastro = usuario.Cadastro == default(DateTime) ? DateTime.Now : usuario.Cadastro,
-                // IdUsuario será gerado automaticamente pelo banco (auto-incremento)
-                // Certificados será null (será populado quando necessário)
-            };
+                // Validação básica
+                if (string.IsNullOrWhiteSpace(usuario.Nome))
+                    return BadRequest("O campo 'nome' é obrigatório.");
+                
+                if (string.IsNullOrWhiteSpace(usuario.EmailUsuario))
+                    return BadRequest("O campo 'emailUsuario' é obrigatório.");
+                
+                if (string.IsNullOrWhiteSpace(usuario.Senha))
+                    return BadRequest("O campo 'senha' é obrigatório.");
+                
+                if (string.IsNullOrWhiteSpace(usuario.Cpf))
+                    return BadRequest("O campo 'cpf' é obrigatório.");
 
-            _context.Usuarios.Add(novoUsuario);
-            await _context.SaveChangesAsync();
-            
-            // Carrega o usuário criado com os relacionamentos para retornar
-            var usuarioCriado = await _context.Usuarios
-                .Include(u => u.Certificados)
-                .FirstOrDefaultAsync(u => u.IdUsuario == novoUsuario.IdUsuario);
-            
-            return CreatedAtAction(nameof(GetById), new { id = novoUsuario.IdUsuario }, usuarioCriado);
+                // Cria um novo usuário apenas com os dados básicos, ignorando relacionamentos
+                var novoUsuario = new Usuario
+                {
+                    Nome = usuario.Nome,
+                    EmailUsuario = usuario.EmailUsuario,
+                    Senha = usuario.Senha,
+                    Cpf = usuario.Cpf,
+                    Cadastro = usuario.Cadastro == default(DateTime) ? DateTime.Now : usuario.Cadastro,
+                    // IdUsuario será gerado automaticamente pelo banco (auto-incremento)
+                    // Certificados será null (será populado quando necessário)
+                };
+
+                _context.Usuarios.Add(novoUsuario);
+                await _context.SaveChangesAsync();
+                
+                // Carrega o usuário criado com os relacionamentos para retornar
+                var usuarioCriado = await _context.Usuarios
+                    .Include(u => u.Certificados)
+                    .FirstOrDefaultAsync(u => u.IdUsuario == novoUsuario.IdUsuario);
+                
+                return CreatedAtAction(nameof(GetById), new { id = novoUsuario.IdUsuario }, usuarioCriado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao criar usuário", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpPut("{id}")]

@@ -8,8 +8,19 @@ var builder = WebApplication.CreateBuilder(args);
 // ===================================================================================
 // CONFIGURAÇÃO DO BANCO DE DADOS (.NET 9 e SQL Server)
 // ===================================================================================
+var connectionString = builder.Configuration.GetConnectionString("SqlAzureConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Connection string 'SqlAzureConnection' não foi configurada. " +
+        "Configure a connection string no appsettings.json, appsettings.Development.json " +
+        "ou como variável de ambiente 'ConnectionStrings__SqlAzureConnection'."
+    );
+}
+
 builder.Services.AddDbContext<AppDb>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlAzureConnection")));
+    options.UseSqlServer(connectionString));
 
 // --- Configuração de Serviços ---
 
@@ -63,8 +74,17 @@ app.MapControllers();
 // ===================================================================================
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDb>();
-    dbContext.Database.Migrate();
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDb>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Erro ao aplicar migrations. Verifique a connection string e a conectividade com o banco de dados.");
+        // Não interrompe a aplicação, mas registra o erro
+    }
 }
 
 app.Run();
