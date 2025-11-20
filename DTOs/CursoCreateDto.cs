@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MinhaApiOracle.Models
+namespace MinhaApiOracle.DTOs
 {
     /// <summary>
     /// DTO para criação de curso (sem relacionamentos)
