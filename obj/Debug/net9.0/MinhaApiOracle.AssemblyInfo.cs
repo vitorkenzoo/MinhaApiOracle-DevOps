@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MinhaApiOracle")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d7027c2bb73736b96cbd73ab12719544d628ddf1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2e136482cb7481448a8259e0de69d50740753fdf")]
 [assembly: System.Reflection.AssemblyProductAttribute("MinhaApiOracle")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MinhaApiOracle")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
