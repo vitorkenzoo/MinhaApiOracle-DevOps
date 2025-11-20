@@ -65,32 +65,37 @@ namespace MinhaApiOracle.Controllers
             return Ok(usuarios);
         }
 
+        /// <summary>
+        /// Cria um novo usuário
+        /// </summary>
+        /// <param name="dto">Dados do usuário (sem relacionamentos)</param>
+        /// <returns>Usuário criado com ID gerado</returns>
         [HttpPost]
-        public async Task<IActionResult> Create(Usuario usuario)
+        public async Task<IActionResult> Create(UsuarioCreateDto dto)
         {
             try
             {
                 // Validação básica
-                if (string.IsNullOrWhiteSpace(usuario.Nome))
+                if (string.IsNullOrWhiteSpace(dto.Nome))
                     return BadRequest("O campo 'nome' é obrigatório.");
                 
-                if (string.IsNullOrWhiteSpace(usuario.EmailUsuario))
+                if (string.IsNullOrWhiteSpace(dto.EmailUsuario))
                     return BadRequest("O campo 'emailUsuario' é obrigatório.");
                 
-                if (string.IsNullOrWhiteSpace(usuario.Senha))
+                if (string.IsNullOrWhiteSpace(dto.Senha))
                     return BadRequest("O campo 'senha' é obrigatório.");
                 
-                if (string.IsNullOrWhiteSpace(usuario.Cpf))
+                if (string.IsNullOrWhiteSpace(dto.Cpf))
                     return BadRequest("O campo 'cpf' é obrigatório.");
 
                 // Cria um novo usuário apenas com os dados básicos, ignorando relacionamentos
                 var novoUsuario = new Usuario
                 {
-                    Nome = usuario.Nome,
-                    EmailUsuario = usuario.EmailUsuario,
-                    Senha = usuario.Senha,
-                    Cpf = usuario.Cpf,
-                    Cadastro = usuario.Cadastro == default(DateTime) ? DateTime.Now : usuario.Cadastro,
+                    Nome = dto.Nome,
+                    EmailUsuario = dto.EmailUsuario,
+                    Senha = dto.Senha,
+                    Cpf = dto.Cpf,
+                    Cadastro = dto.Cadastro ?? DateTime.Now,
                     // IdUsuario será gerado automaticamente pelo banco (auto-incremento)
                     // Certificados será null (será populado quando necessário)
                 };

@@ -51,15 +51,56 @@ namespace MinhaApiOracle.Controllers
             return Ok(certificados);
         }
 
+        /// <summary>
+        /// Cria um novo certificado
+        /// </summary>
+        /// <param name="dto">Dados do certificado (apenas IDs, sem objetos de navegação)</param>
+        /// <returns>Certificado criado</returns>
         [HttpPost]
-        public async Task<IActionResult> Create(Certificado certificado)
+        public async Task<IActionResult> Create(CertificadoCreateDto dto)
         {
-            if (certificado.DtEmissao == default(DateTime))
-                certificado.DtEmissao = DateTime.Now;
+            try
+            {
+                // Validação básica
+                if (string.IsNullOrWhiteSpace(dto.IdCertificado))
+                    return BadRequest("O campo 'idCertificado' é obrigatório.");
 
-            _context.Certificados.Add(certificado);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = certificado.IdCertificado }, certificado);
+                // Verifica se o usuário existe
+                var usuarioExiste = await _context.Usuarios.AnyAsync(u => u.IdUsuario == dto.IdUsuario);
+                if (!usuarioExiste)
+                    return BadRequest($"Usuário com ID {dto.IdUsuario} não encontrado.");
+
+                // Verifica se o curso existe
+                var cursoExiste = await _context.Cursos.AnyAsync(c => c.IdCurso == dto.IdCurso);
+                if (!cursoExiste)
+                    return BadRequest($"Curso com ID {dto.IdCurso} não encontrado.");
+
+                // Cria o certificado apenas com os dados básicos
+                var novoCertificado = new Certificado
+                {
+                    IdCertificado = dto.IdCertificado,
+                    DtEmissao = dto.DtEmissao ?? DateTime.Now,
+                    Descricao = dto.Descricao,
+                    CodigoValidacao = dto.CodigoValidacao,
+                    IdUsuario = dto.IdUsuario,
+                    IdCurso = dto.IdCurso
+                };
+
+                _context.Certificados.Add(novoCertificado);
+                await _context.SaveChangesAsync();
+
+                // Carrega o certificado criado com os relacionamentos para retornar
+                var certificadoCriado = await _context.Certificados
+                    .Include(c => c.Usuario)
+                    .Include(c => c.Curso)
+                    .FirstOrDefaultAsync(c => c.IdCertificado == novoCertificado.IdCertificado);
+
+                return CreatedAtAction(nameof(GetById), new { id = novoCertificado.IdCertificado }, certificadoCriado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao criar certificado", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpPut("{id}")]
