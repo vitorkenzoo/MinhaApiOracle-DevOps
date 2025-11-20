@@ -128,19 +128,39 @@ stages:
               # O caminho para o .zip baixado na etapa anterior
               package: '$(Pipeline.Workspace)/drop/**/*.zip' 
               deploymentMethod: 'auto'
-              
-              # Injeta as variáveis de ambiente no seu App Service
-              # Nota: $(SQL_CONNECTION_STRING) é uma variável SECRETA
-              appSettings: |
-                [
-                  {
-                    "name": "ConnectionStrings:SqlAzureConnection",
-                    "value": "$(SQL_CONNECTION_STRING)",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "ASPNETCORE_ENVIRONMENT",
-                    "value": "Production",
-                    "slotSetting": false
-                  }
-                ]
+
+          # 3. Configura Connection String e Application Settings do App Service
+          # Nota: Variáveis do banco devem ser configuradas no Azure DevOps (Library > Variable Groups)
+          # Variáveis necessárias (marcar como SECRETAS):
+          # - SQL_SERVER_NAME (ex: sql-minha-api-oracle)
+          # - SQL_DATABASE_NAME (ex: bd-minha-api-oracle)
+          # - SQL_ADMIN_USER (ex: sqladmin)
+          # - SQL_ADMIN_PASSWORD (senha do SQL Server - SECRETO)
+          - task: AzureCLI@2
+            displayName: 'Configurar Connection String'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Monta a connection string a partir das variáveis individuais
+                $connectionString = "Server=tcp:$(SQL_SERVER_NAME).database.windows.net,1433;Initial Catalog=$(SQL_DATABASE_NAME);Persist Security Info=False;User ID=$(SQL_ADMIN_USER);Password=$(SQL_ADMIN_PASSWORD);MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+                
+                # Configura Connection String no Azure Web App
+                az webapp config connection-string set `
+                  --name $(webAppName) `
+                  --resource-group $(resourceGroup) `
+                  --connection-string-type SQLAzure `
+                  --settings SqlAzureConnection="$connectionString"
+                
+                Write-Host "Connection String configurada com sucesso!"
+          
+          # Configura Application Settings
+          - task: AzureCLI@2
+            displayName: 'Configurar Application Settings'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az webapp config appsettings set --name $(webAppName) --resource-group $(resourceGroup) --settings ASPNETCORE_ENVIRONMENT="Production"

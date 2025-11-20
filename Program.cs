@@ -8,8 +8,34 @@ var builder = WebApplication.CreateBuilder(args);
 // ===================================================================================
 // CONFIGURAÇÃO DO BANCO DE DADOS (.NET 9 e SQL Server)
 // ===================================================================================
+// Lê a connection string - funciona tanto com Connection Strings quanto Application Settings
+var connectionString = builder.Configuration.GetConnectionString("SqlAzureConnection");
+
+// Fallback: tenta ler de diferentes formatos (compatibilidade com diferentes configurações)
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString = builder.Configuration["ConnectionStrings:SqlAzureConnection"] 
+                    ?? builder.Configuration["ConnectionStrings__SqlAzureConnection"]
+                    ?? builder.Configuration["SqlAzureConnection"];
+}
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    var errorMessage = 
+        "Connection string 'SqlAzureConnection' não foi configurada.\n" +
+        "Configure a connection string no Azure Portal:\n" +
+        "1. App Service > Configuration > Connection strings\n" +
+        "   - Name: SqlAzureConnection\n" +
+        "   - Type: SQLAzure\n" +
+        "2. Ou em Application settings:\n" +
+        "   - Name: ConnectionStrings__SqlAzureConnection\n" +
+        "Veja INSTRUCOES-CONFIGURACAO.md para mais detalhes.";
+    
+    throw new InvalidOperationException(errorMessage);
+}
+
 builder.Services.AddDbContext<AppDb>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlAzureConnection")));
+    options.UseSqlServer(connectionString));
 
 // --- Configuração de Serviços ---
 
@@ -63,8 +89,17 @@ app.MapControllers();
 // ===================================================================================
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDb>();
-    dbContext.Database.Migrate();
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDb>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Erro ao aplicar migrations. Verifique a connection string e a conectividade com o banco de dados.");
+        // Não interrompe a aplicação, mas registra o erro
+    }
 }
 
 app.Run();

@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MinhaApiOracle.Models
 {
+    [Table("T_CURSO")]
     public class Curso
     {
         [Key]
