@@ -84,6 +84,15 @@
 - `idCurso` (gerado automaticamente)
 - `certificados` (criados separadamente)
 
+### 📝 **Exemplo Completo:**
+```json
+{
+  "nomeCurso": "Azure Fundamentals",
+  "descricao": "Curso de fundamentos do Azure",
+  "qtHoras": 40
+}
+```
+
 ---
 
 ## 🏢 **POST /api/Empresas** - Criar Empresa
@@ -94,6 +103,19 @@
   "razaoSocial": "Empresa Tech Ltda",
   "cnpj": "12345678000190",
   "emailEmpresa": "contato@empresatech.com"
+}
+```
+
+### ❌ **NÃO envie:**
+- `idEmpresa` (gerado automaticamente)
+- `vagas` (criadas separadamente)
+
+### 📝 **Exemplo Completo:**
+```json
+{
+  "razaoSocial": "Tech Solutions S.A.",
+  "cnpj": "98765432000111",
+  "emailEmpresa": "contato@techsolutions.com"
 }
 ```
 
@@ -115,6 +137,44 @@
 ### ❌ **NÃO envie:**
 - `idVaga` (gerado automaticamente)
 - `empresa` (objeto de navegação - não envie!)
+
+### 📝 **Exemplo Completo:**
+```json
+{
+  "nomeVaga": "Desenvolvedor Full Stack",
+  "descricaoVaga": "Vaga para desenvolvedor full stack com .NET e React",
+  "salario": 15000.00,
+  "dtPublicacao": "2025-11-20T10:00:00.000Z",
+  "idEmpresa": 1
+}
+```
+
+---
+
+## 📋 **POST /api/LogAuditorias** - Criar Log de Auditoria
+
+### ✅ **JSON Correto:**
+```json
+{
+  "nomeTabela": "T_USUARIOS",
+  "dsOperacao": "I",
+  "dataOperacao": "2025-11-20 10:00:00",
+  "nmUsuarioDb": "sqladmin"
+}
+```
+
+### ❌ **NÃO envie:**
+- `idLog` (gerado automaticamente)
+
+### 📝 **Exemplo Completo:**
+```json
+{
+  "nomeTabela": "T_CERTIFICADO",
+  "dsOperacao": "I",
+  "dataOperacao": "2025-11-20 10:00:00",
+  "nmUsuarioDb": "sqladmin"
+}
+```
 
 ---
 
