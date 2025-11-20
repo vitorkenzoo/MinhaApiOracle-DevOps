@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\Tests\\MinhaApiOracle.Tests.csproj": {}
+    "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\Tests\\MinhaApiOracle.Tests.csproj": {}
   },
   "projects": {
-    "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj": {
+    "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj",
+        "projectUniqueName": "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj",
         "projectName": "MinhaApiOracle",
-        "projectPath": "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj",
+        "projectPath": "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj",
         "packagesPath": "C:\\Users\\VITOR\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\obj\\",
+        "outputPath": "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\VITOR\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -46,17 +46,17 @@
           "dependencies": {
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
-              "version": "[9.0.10, )"
+              "version": "[9.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
-              "version": "[9.0.10, )"
+              "version": "[9.0.0, )"
             },
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[9.0.10, )"
+              "version": "[9.0.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -86,14 +86,14 @@
         }
       }
     },
-    "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\Tests\\MinhaApiOracle.Tests.csproj": {
+    "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\Tests\\MinhaApiOracle.Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\Tests\\MinhaApiOracle.Tests.csproj",
+        "projectUniqueName": "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\Tests\\MinhaApiOracle.Tests.csproj",
         "projectName": "MinhaApiOracle.Tests",
-        "projectPath": "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\Tests\\MinhaApiOracle.Tests.csproj",
+        "projectPath": "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\Tests\\MinhaApiOracle.Tests.csproj",
         "packagesPath": "C:\\Users\\VITOR\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\Tests\\obj\\",
+        "outputPath": "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\Tests\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\VITOR\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -108,8 +108,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj": {
-                "projectPath": "C:\\Users\\VITOR\\cs\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj"
+              "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj": {
+                "projectPath": "C:\\Users\\VITOR\\Nova pasta (4)\\MinhaApiOracle-DevOps\\MinhaApiOracle.csproj"
               }
             }
           }

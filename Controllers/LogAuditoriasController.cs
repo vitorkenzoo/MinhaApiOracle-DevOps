@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MinhaApiOracle.Data;
 using MinhaApiOracle.Models;
+using MinhaApiOracle.DTOs;
 
 namespace MinhaApiOracle.Controllers
 {
@@ -45,15 +46,36 @@ namespace MinhaApiOracle.Controllers
             return Ok(logs);
         }
 
+        /// <summary>
+        /// Cria um novo log de auditoria
+        /// </summary>
+        /// <param name="dto">Dados do log de auditoria</param>
+        /// <returns>Log criado com ID gerado</returns>
         [HttpPost]
-        public async Task<IActionResult> Create(LogAuditoria logAuditoria)
+        public async Task<IActionResult> Create(LogAuditoriaCreateDto dto)
         {
-            if (string.IsNullOrEmpty(logAuditoria.DataOperacao))
-                logAuditoria.DataOperacao = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            try
+            {
+                var novoLog = new LogAuditoria
+                {
+                    NomeTabela = dto.NomeTabela,
+                    DsOperacao = dto.DsOperacao,
+                    DataOperacao = string.IsNullOrEmpty(dto.DataOperacao) 
+                        ? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") 
+                        : dto.DataOperacao,
+                    NmUsuarioDb = dto.NmUsuarioDb
+                };
 
-            _context.LogAuditorias.Add(logAuditoria);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = logAuditoria.IdLog }, logAuditoria);
+                _context.LogAuditorias.Add(novoLog);
+                await _context.SaveChangesAsync();
+
+                var logCriado = await _context.LogAuditorias.FindAsync(novoLog.IdLog);
+                return CreatedAtAction(nameof(GetById), new { id = novoLog.IdLog }, logCriado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao criar log de auditoria", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpPut("{id}")]

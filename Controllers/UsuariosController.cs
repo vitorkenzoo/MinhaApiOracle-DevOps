@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MinhaApiOracle.Data;
 using MinhaApiOracle.Models;
+using MinhaApiOracle.DTOs;
 
 namespace MinhaApiOracle.Controllers
 {
@@ -19,21 +20,35 @@ namespace MinhaApiOracle.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var usuarios = await _context.Usuarios
-                .Include(u => u.Certificados)
-                .ToListAsync();
-            return Ok(usuarios);
+            try
+            {
+                var usuarios = await _context.Usuarios
+                    .Include(u => u.Certificados)
+                    .ToListAsync();
+                return Ok(usuarios);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao buscar usuários", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var usuario = await _context.Usuarios
-                .Include(u => u.Certificados)
-                .FirstOrDefaultAsync(u => u.IdUsuario == id);
-            
-            if (usuario == null) return NotFound();
-            return Ok(usuario);
+            try
+            {
+                var usuario = await _context.Usuarios
+                    .Include(u => u.Certificados)
+                    .FirstOrDefaultAsync(u => u.IdUsuario == id);
+                
+                if (usuario == null) return NotFound();
+                return Ok(usuario);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao buscar usuário", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpGet("buscar")]
@@ -51,15 +66,55 @@ namespace MinhaApiOracle.Controllers
             return Ok(usuarios);
         }
 
+        /// <summary>
+        /// Cria um novo usuário
+        /// </summary>
+        /// <param name="dto">Dados do usuário (sem relacionamentos)</param>
+        /// <returns>Usuário criado com ID gerado</returns>
         [HttpPost]
-        public async Task<IActionResult> Create(Usuario usuario)
+        public async Task<IActionResult> Create(UsuarioCreateDto dto)
         {
-            if (usuario.Cadastro == default(DateTime))
-                usuario.Cadastro = DateTime.Now;
+            try
+            {
+                // Validação básica
+                if (string.IsNullOrWhiteSpace(dto.Nome))
+                    return BadRequest("O campo 'nome' é obrigatório.");
+                
+                if (string.IsNullOrWhiteSpace(dto.EmailUsuario))
+                    return BadRequest("O campo 'emailUsuario' é obrigatório.");
+                
+                if (string.IsNullOrWhiteSpace(dto.Senha))
+                    return BadRequest("O campo 'senha' é obrigatório.");
+                
+                if (string.IsNullOrWhiteSpace(dto.Cpf))
+                    return BadRequest("O campo 'cpf' é obrigatório.");
 
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = usuario.IdUsuario }, usuario);
+                // Cria um novo usuário apenas com os dados básicos, ignorando relacionamentos
+                var novoUsuario = new Usuario
+                {
+                    Nome = dto.Nome,
+                    EmailUsuario = dto.EmailUsuario,
+                    Senha = dto.Senha,
+                    Cpf = dto.Cpf,
+                    Cadastro = dto.Cadastro ?? DateTime.Now,
+                    // IdUsuario será gerado automaticamente pelo banco (auto-incremento)
+                    // Certificados será null (será populado quando necessário)
+                };
+
+                _context.Usuarios.Add(novoUsuario);
+                await _context.SaveChangesAsync();
+                
+                // Carrega o usuário criado com os relacionamentos para retornar
+                var usuarioCriado = await _context.Usuarios
+                    .Include(u => u.Certificados)
+                    .FirstOrDefaultAsync(u => u.IdUsuario == novoUsuario.IdUsuario);
+                
+                return CreatedAtAction(nameof(GetById), new { id = novoUsuario.IdUsuario }, usuarioCriado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao criar usuário", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpPut("{id}")]

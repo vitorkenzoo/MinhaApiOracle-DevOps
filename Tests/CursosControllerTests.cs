@@ -2,6 +2,7 @@ using Xunit;
 using MinhaApiOracle.Controllers;
 using MinhaApiOracle.Data;
 using MinhaApiOracle.Models;
+using MinhaApiOracle.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,7 +39,7 @@ namespace MinhaApiOracle.Tests.Controllers
             // Arrange
             var context = GetInMemoryDbContext();
             var controller = new CursosController(context);
-            var curso = new Curso
+            var dto = new CursoCreateDto
             {
                 NomeCurso = "Curso de Teste",
                 Descricao = "Descrição do curso",
@@ -46,7 +47,7 @@ namespace MinhaApiOracle.Tests.Controllers
             };
 
             // Act
-            var result = controller.Create(curso).Result;
+            var result = controller.Create(dto).Result;
 
             // Assert
             Assert.IsType<CreatedAtActionResult>(result);

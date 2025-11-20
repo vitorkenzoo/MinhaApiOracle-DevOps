@@ -2,6 +2,7 @@ using Xunit;
 using MinhaApiOracle.Controllers;
 using MinhaApiOracle.Data;
 using MinhaApiOracle.Models;
+using MinhaApiOracle.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,7 +39,7 @@ namespace MinhaApiOracle.Tests.Controllers
             // Arrange
             var context = GetInMemoryDbContext();
             var controller = new UsuariosController(context);
-            var usuario = new Usuario
+            var dto = new UsuarioCreateDto
             {
                 Nome = "Teste Usuario",
                 EmailUsuario = "teste@teste.com",
@@ -48,7 +49,7 @@ namespace MinhaApiOracle.Tests.Controllers
             };
 
             // Act
-            var result = controller.Create(usuario).Result;
+            var result = controller.Create(dto).Result;
 
             // Assert
             Assert.IsType<CreatedAtActionResult>(result);

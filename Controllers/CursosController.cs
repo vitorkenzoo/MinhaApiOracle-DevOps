@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MinhaApiOracle.Data;
 using MinhaApiOracle.Models;
+using MinhaApiOracle.DTOs;
 
 namespace MinhaApiOracle.Controllers
 {
@@ -51,12 +52,44 @@ namespace MinhaApiOracle.Controllers
             return Ok(cursos);
         }
 
+        /// <summary>
+        /// Cria um novo curso
+        /// </summary>
+        /// <param name="dto">Dados do curso (sem relacionamentos)</param>
+        /// <returns>Curso criado com ID gerado</returns>
         [HttpPost]
-        public async Task<IActionResult> Create(Curso curso)
+        public async Task<IActionResult> Create(CursoCreateDto dto)
         {
-            _context.Cursos.Add(curso);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = curso.IdCurso }, curso);
+            try
+            {
+                // Validação básica
+                if (string.IsNullOrWhiteSpace(dto.NomeCurso))
+                    return BadRequest("O campo 'nomeCurso' é obrigatório.");
+
+                // Cria um novo curso apenas com os dados básicos, ignorando relacionamentos
+                var novoCurso = new Curso
+                {
+                    NomeCurso = dto.NomeCurso,
+                    Descricao = dto.Descricao,
+                    QtHoras = dto.QtHoras,
+                    // IdCurso será gerado automaticamente pelo banco (auto-incremento)
+                    // Certificados será null (será populado quando necessário)
+                };
+
+                _context.Cursos.Add(novoCurso);
+                await _context.SaveChangesAsync();
+                
+                // Carrega o curso criado com os relacionamentos para retornar
+                var cursoCriado = await _context.Cursos
+                    .Include(c => c.Certificados)
+                    .FirstOrDefaultAsync(c => c.IdCurso == novoCurso.IdCurso);
+                
+                return CreatedAtAction(nameof(GetById), new { id = novoCurso.IdCurso }, cursoCriado);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao criar curso", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpPut("{id}")]

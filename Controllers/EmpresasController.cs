@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MinhaApiOracle.Data;
 using MinhaApiOracle.Models;
+using MinhaApiOracle.DTOs;
 
 namespace MinhaApiOracle.Controllers
 {
@@ -51,12 +52,47 @@ namespace MinhaApiOracle.Controllers
             return Ok(empresas);
         }
 
+        /// <summary>
+        /// Cria uma nova empresa
+        /// </summary>
+        /// <param name="dto">Dados da empresa (sem relacionamentos)</param>
+        /// <returns>Empresa criada com ID gerado</returns>
         [HttpPost]
-        public async Task<IActionResult> Create(Empresa empresa)
+        public async Task<IActionResult> Create(EmpresaCreateDto dto)
         {
-            _context.Empresas.Add(empresa);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = empresa.IdEmpresa }, empresa);
+            try
+            {
+                // Validação básica
+                if (string.IsNullOrWhiteSpace(dto.RazaoSocial))
+                    return BadRequest("O campo 'razaoSocial' é obrigatório.");
+                
+                if (string.IsNullOrWhiteSpace(dto.Cnpj))
+                    return BadRequest("O campo 'cnpj' é obrigatório.");
+
+                // Cria uma nova empresa apenas com os dados básicos, ignorando relacionamentos
+                var novaEmpresa = new Empresa
+                {
+                    RazaoSocial = dto.RazaoSocial,
+                    Cnpj = dto.Cnpj,
+                    EmailEmpresa = dto.EmailEmpresa,
+                    // IdEmpresa será gerado automaticamente pelo banco (auto-incremento)
+                    // Vagas será null (será populado quando necessário)
+                };
+
+                _context.Empresas.Add(novaEmpresa);
+                await _context.SaveChangesAsync();
+                
+                // Carrega a empresa criada com os relacionamentos para retornar
+                var empresaCriada = await _context.Empresas
+                    .Include(e => e.Vagas)
+                    .FirstOrDefaultAsync(e => e.IdEmpresa == novaEmpresa.IdEmpresa);
+                
+                return CreatedAtAction(nameof(GetById), new { id = novaEmpresa.IdEmpresa }, empresaCriada);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Erro ao criar empresa", message = ex.Message, innerException = ex.InnerException?.Message });
+            }
         }
 
         [HttpPut("{id}")]
